@@ -1,0 +1,21 @@
+# Lemain Spindle
+
+Desktop app da Lemain Labs para extrair mídia do YouTube (MP4/MP3).
+
+## Destino
+Electron (UI) + motor Python interno (validação, info, download).
+
+## Entry points (protótipo atual)
+- GUI: `main.py` → `src/presentation/app.py`
+- CLI: `download_youtube.py`
+
+## Layers
+- `src/domain` — entities, errors, ports
+- `src/application` — GetVideoInfo, DownloadMedia
+- `src/infrastructure` — yt-dlp gateway, URL/path validators, thumbnail loader
+- `src/presentation` — CustomTkinter UI, workers; extração só após validar o vídeo
+
+## Conventions
+- Use cases orquestram validators + gateway; UI/CLI não falam com yt-dlp direto
+- Somente hosts YouTube; download unitário (`noplaylist`)
+- Ambiente: `.venv` + `requirements.txt`; depende de `ffmpeg`
