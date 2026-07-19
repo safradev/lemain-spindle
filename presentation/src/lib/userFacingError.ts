@@ -35,7 +35,7 @@ const RULES: Array<{ test: RegExp; message: string }> = [
     message: USER_MESSAGES.invalidParams,
   },
   {
-    test: /motor|embutido|python encerrou|enoent|spawn|indispon[ií]vel/i,
+    test: /motor|embutido|python encerrou|enoent|spawn|indispon[ií]vel|demorou demais|sem resposta|runtime ausente/i,
     message: USER_MESSAGES.motor,
   },
 ];

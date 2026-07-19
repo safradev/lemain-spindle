@@ -15,7 +15,7 @@ $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
 $SignScript = Join-Path $PSScriptRoot "sign-binaries.ps1"
 
-Write-Host "==> Spindle Windows build (v0.1.3)"
+Write-Host "==> Spindle Windows build (v0.1.4)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {
@@ -102,6 +102,19 @@ try {
     npm run dist:win
     if ($LASTEXITCODE -ne 0) {
       throw "npm run dist:win failed (exit $LASTEXITCODE)"
+    }
+
+    $UnpackedCore = Join-Path $Presentation "release\win-unpacked\resources\core\spindle-core.exe"
+    if (Test-Path $UnpackedCore) {
+      Write-Host "==> Smoke-test packaged core"
+      $Ping = '{"id":"1","method":"ping","params":{}}'
+      $PackagedResult = $Ping | & $UnpackedCore
+      if ($PackagedResult -notmatch '"ok"\s*:\s*true') {
+        throw "Packaged core ping failed. Output: $PackagedResult"
+      }
+      Write-Host "Packaged core ping OK"
+    } else {
+      Write-Host "WARN: win-unpacked core not found for smoke test ($UnpackedCore)"
     }
   }
   finally {

@@ -116,6 +116,8 @@ def run() -> int:
         stream=sys.stderr,
     )
     server = BridgeServer()
+    sys.stderr.write("spindle-core:ready\n")
+    sys.stderr.flush()
     for raw_line in sys.stdin:
         line = raw_line.strip()
         if not line:

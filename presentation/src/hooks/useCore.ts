@@ -38,6 +38,11 @@ export function useCore() {
     let attempts = 0;
 
     const connect = () => {
+      setState((current) =>
+        current.ready
+          ? current
+          : { ...current, progress: { percent: 0, status: "Iniciando motor..." } },
+      );
       void window.spindle.ping().then(
         () => {
           if (!cancelled) {
@@ -49,8 +54,8 @@ export function useCore() {
             return;
           }
           attempts += 1;
-          if (attempts < 12) {
-            window.setTimeout(connect, 500 * attempts);
+          if (attempts < 20) {
+            window.setTimeout(connect, Math.min(2000, 400 * attempts));
             return;
           }
           setState((current) => ({

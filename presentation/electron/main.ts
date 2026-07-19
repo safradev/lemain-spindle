@@ -179,7 +179,10 @@ app.whenReady().then(() => {
   registerIpc();
   createWindow();
   try {
-    ensureBridge();
+    const core = ensureBridge();
+    void core.whenReady().catch((error) => {
+      console.error("Falha ao iniciar motor Python", error);
+    });
   } catch (error) {
     console.error("Falha ao iniciar motor Python", error);
   }

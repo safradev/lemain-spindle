@@ -1,7 +1,7 @@
 {
   "name": "lemain-spindle",
   "productName": "Lemain Spindle",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Lemain Spindle — YouTube media extractor",
   "author": "Lemain Labs",
@@ -92,6 +92,7 @@
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true
     },
-    "asar": true
+    "asar": true,
+    "afterPack": "./scripts/ensure-core-resources.cjs"
   }
 }
