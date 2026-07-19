@@ -1,9 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_all
+import os
+
+from PyInstaller.utils.hooks import collect_all, collect_submodules
+
+spec_dir = os.path.dirname(SPECPATH)
+repo_root = os.path.abspath(os.path.join(spec_dir, "..", ".."))
+entry_script = os.path.join(spec_dir, "..", "spindle_core_main.py")
 
 datas = []
 binaries = []
-hiddenimports = []
+hiddenimports = collect_submodules("core")
 
 tmp_ret = collect_all("yt_dlp")
 datas += tmp_ret[0]
@@ -11,8 +17,8 @@ binaries += tmp_ret[1]
 hiddenimports += tmp_ret[2]
 
 a = Analysis(
-    ["../spindle_core_main.py"],
-    pathex=["../.."],
+    [entry_script],
+    pathex=[repo_root],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,

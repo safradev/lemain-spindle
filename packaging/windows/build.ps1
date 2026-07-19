@@ -15,13 +15,33 @@ $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
 $SignScript = Join-Path $PSScriptRoot "sign-binaries.ps1"
 
-Write-Host "==> Spindle Windows build (v0.1.4)"
+Write-Host "==> Spindle Windows build (v0.1.5)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {
   if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
     throw "Required command not found: $Name"
   }
+}
+
+function Assert-CorePing([string]$ExePath, [string]$Label) {
+  if (-not (Test-Path $ExePath)) {
+    throw "$Label missing: $ExePath"
+  }
+  $Ping = '{"id":"1","method":"ping","params":{}}'
+  $Output = ""
+  try {
+    $Output = $Ping | & $ExePath 2>&1 | Out-String
+  } catch {
+    throw "$Label ping threw: $($_.Exception.Message)`n$Output"
+  }
+  if ($LASTEXITCODE -ne 0) {
+    throw "$Label ping failed (exit $LASTEXITCODE). Output:`n$Output"
+  }
+  if ($Output -notmatch '"ok"\s*:\s*true') {
+    throw "$Label ping missing ok=true. Output:`n$Output"
+  }
+  Write-Host "$Label ping OK"
 }
 
 Assert-Command "python"
@@ -43,6 +63,9 @@ try {
   New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
   New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
   & $PyInstaller --clean --noconfirm --distpath $DistDir --workpath $BuildDir $Spec
+  if ($LASTEXITCODE -ne 0) {
+    throw "PyInstaller failed (exit $LASTEXITCODE)"
+  }
   $BuiltDir = Join-Path $DistDir "spindle-core"
   $BuiltExe = Join-Path $BuiltDir "spindle-core.exe"
   if (-not (Test-Path $BuiltExe)) {
@@ -61,12 +84,7 @@ try {
   Copy-Item -Recurse -Force (Join-Path $BuiltDir "*") $CoreOutDir
 
   Write-Host "==> Smoke-test core"
-  $Ping = '{"id":"1","method":"ping","params":{}}'
-  $Result = $Ping | & $CoreExe
-  if ($Result -notmatch '"ok"\s*:\s*true') {
-    throw "Core ping failed. Output: $Result"
-  }
-  Write-Host "Core ping OK"
+  Assert-CorePing -ExePath $CoreExe -Label "Core"
 
   Write-Host "==> Download ffmpeg"
   & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "download-ffmpeg.ps1")
@@ -105,17 +123,8 @@ try {
     }
 
     $UnpackedCore = Join-Path $Presentation "release\win-unpacked\resources\core\spindle-core.exe"
-    if (Test-Path $UnpackedCore) {
-      Write-Host "==> Smoke-test packaged core"
-      $Ping = '{"id":"1","method":"ping","params":{}}'
-      $PackagedResult = $Ping | & $UnpackedCore
-      if ($PackagedResult -notmatch '"ok"\s*:\s*true') {
-        throw "Packaged core ping failed. Output: $PackagedResult"
-      }
-      Write-Host "Packaged core ping OK"
-    } else {
-      Write-Host "WARN: win-unpacked core not found for smoke test ($UnpackedCore)"
-    }
+    Write-Host "==> Smoke-test packaged core"
+    Assert-CorePing -ExePath $UnpackedCore -Label "Packaged core"
   }
   finally {
     Pop-Location
