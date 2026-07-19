@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -19,6 +20,19 @@ from core.domain.errors import DownloadFailedError, VideoNotFoundError
 logger = logging.getLogger(__name__)
 
 
+def resolve_ffmpeg_location() -> str | None:
+    for key in ("SPINDLE_FFMPEG", "FFMPEG_LOCATION"):
+        raw = (os.environ.get(key) or "").strip()
+        if not raw:
+            continue
+        path = Path(raw)
+        if path.is_file():
+            return str(path.parent.resolve())
+        if path.is_dir():
+            return str(path.resolve())
+    return None
+
+
 class YtDlpVideoGateway:
     def fetch_info(self, url: str) -> VideoInfo:
         options = {
@@ -27,6 +41,7 @@ class YtDlpVideoGateway:
             "noplaylist": True,
             "skip_download": True,
         }
+        options.update(self._ffmpeg_options())
         try:
             with YoutubeDL(options) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -144,16 +159,26 @@ class YtDlpVideoGateway:
             media_format=request.media_format,
         )
 
+    def _ffmpeg_options(self) -> dict:
+        location = resolve_ffmpeg_location()
+        if not location:
+            return {}
+        return {"ffmpeg_location": location}
+
     def _build_options(self, output_dir: Path, media_format: MediaFormat) -> dict:
         outtmpl = str(output_dir / "%(title)s [%(id)s].%(ext)s")
+        common = {
+            "outtmpl": outtmpl,
+            "noplaylist": True,
+            "quiet": True,
+            "no_warnings": True,
+            **self._ffmpeg_options(),
+        }
 
         if media_format is MediaFormat.MP3:
             return {
+                **common,
                 "format": "bestaudio/best",
-                "outtmpl": outtmpl,
-                "noplaylist": True,
-                "quiet": True,
-                "no_warnings": True,
                 "postprocessors": [
                     {
                         "key": "FFmpegExtractAudio",
@@ -164,15 +189,12 @@ class YtDlpVideoGateway:
             }
 
         return {
+            **common,
             "format": (
                 "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
                 "bestvideo+bestaudio/best[ext=mp4]/best"
             ),
             "merge_output_format": "mp4",
-            "outtmpl": outtmpl,
-            "noplaylist": True,
-            "quiet": True,
-            "no_warnings": True,
         }
 
     def _resolve_output_path(

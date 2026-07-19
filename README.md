@@ -134,3 +134,37 @@ npm run dev
 ## Tema
 
 Claro/escuro no toggle da UI (persistido em `localStorage`).
+
+## Distribuição Windows (v0.1.0)
+
+Gera um `.exe` standalone (sem Python/Node no PC de destino). O build **precisa rodar no Windows** (PyInstaller não cross-compila).
+
+### Em uma máquina Windows
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\packaging\windows\build.ps1
+```
+
+Artefatos em `presentation/release/`:
+
+| Arquivo | Uso |
+| --- | --- |
+| `Lemain-Spindle-0.1.0-portable.exe` | Baixar e executar (recomendado) |
+| `Lemain-Spindle-0.1.0-setup.exe` | Instalador NSIS |
+
+O pacote inclui UI Electron + `spindle-core.exe` (motor Python congelado) + `ffmpeg`.
+
+### Via GitHub Actions
+
+Workflow [`.github/workflows/build-windows.yml`](.github/workflows/build-windows.yml):
+
+1. Actions → **Build Windows** → Run workflow  
+   ou push de tag `v0.1.0`
+2. Baixar o artifact `lemain-spindle-windows-0.1.0`
+
+### Pré-requisitos do build (só na máquina que gera o .exe)
+
+- Windows 10/11 x64
+- Python 3.12+
+- Node.js 20+
+- npm

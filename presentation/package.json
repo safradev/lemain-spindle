@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Lemain Spindle — YouTube media extractor",
+  "author": "Leandro Safra",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -11,7 +12,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "postinstall": "node scripts/patch-electron-brand.mjs",
-    "patch:electron": "node scripts/patch-electron-brand.mjs"
+    "patch:electron": "node scripts/patch-electron-brand.mjs",
+    "dist:win": "electron-builder --win --x64"
   },
   "dependencies": {
     "animejs": "^4.0.2",
@@ -25,10 +27,71 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.7.0",
     "electron": "^37.2.3",
+    "electron-builder": "^26.15.3",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
     "vite": "^7.0.5",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "build": {
+    "appId": "com.lemain.spindle",
+    "productName": "Lemain Spindle",
+    "copyright": "Copyright © Lemain Labs",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build-resources/core",
+        "to": "core",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "build-resources/ffmpeg",
+        "to": "ffmpeg",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "icon": "resources/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Lemain-Spindle-${version}-${os}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Lemain-Spindle-${version}-portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Lemain Spindle",
+      "artifactName": "Lemain-Spindle-${version}-setup.${ext}"
+    },
+    "asar": true
   }
 }

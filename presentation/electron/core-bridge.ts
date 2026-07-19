@@ -3,6 +3,7 @@ import { createInterface } from "node:readline";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { EventEmitter } from "node:events";
+import { app } from "electron";
 import type {
   BridgeError,
   DownloadResult,
@@ -24,6 +25,13 @@ type BridgeResponse = {
   params?: ProgressEvent;
 };
 
+type CoreLaunch = {
+  command: string;
+  args: string[];
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+};
+
 function repoRootFromMain(): string {
   return path.resolve(__dirname, "..", "..");
 }
@@ -40,6 +48,70 @@ function resolvePythonBinary(root: string): string {
     }
   }
   return process.platform === "win32" ? "python" : "python3";
+}
+
+function resolveBundledCorePath(): string | null {
+  const fileName = process.platform === "win32" ? "spindle-core.exe" : "spindle-core";
+  const candidates = [
+    path.join(process.resourcesPath, "core", fileName),
+    path.join(repoRootFromMain(), "presentation", "build-resources", "core", fileName),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolveBundledFfmpegPath(): string | null {
+  const fileName = process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+  const candidates = [
+    path.join(process.resourcesPath, "ffmpeg", fileName),
+    path.join(repoRootFromMain(), "presentation", "build-resources", "ffmpeg", fileName),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolveCoreLaunch(root: string): CoreLaunch {
+  const bundledCore = resolveBundledCorePath();
+  const ffmpeg = resolveBundledFfmpegPath();
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    PYTHONUNBUFFERED: "1",
+  };
+
+  if (ffmpeg) {
+    env.SPINDLE_FFMPEG = ffmpeg;
+  }
+
+  const preferBundled = app.isPackaged || process.env.SPINDLE_USE_BUNDLED_CORE === "1";
+  if (preferBundled) {
+    if (!bundledCore) {
+      throw new Error("Motor embutido não encontrado. Reinstale o aplicativo.");
+    }
+    return {
+      command: bundledCore,
+      args: [],
+      cwd: path.dirname(bundledCore),
+      env,
+    };
+  }
+
+  return {
+    command: resolvePythonBinary(root),
+    args: ["-m", "core.bridge.stdio_server"],
+    cwd: root,
+    env: {
+      ...env,
+      PYTHONPATH: root,
+    },
+  };
 }
 
 export class CoreBridge extends EventEmitter {
@@ -59,15 +131,12 @@ export class CoreBridge extends EventEmitter {
       return;
     }
 
-    const python = resolvePythonBinary(this.root);
-    this.child = spawn(python, ["-m", "core.bridge.stdio_server"], {
-      cwd: this.root,
+    const launch = resolveCoreLaunch(this.root);
+    this.child = spawn(launch.command, launch.args, {
+      cwd: launch.cwd,
       stdio: ["pipe", "pipe", "pipe"],
-      env: {
-        ...process.env,
-        PYTHONUNBUFFERED: "1",
-        PYTHONPATH: this.root,
-      },
+      env: launch.env,
+      windowsHide: true,
     });
     this.started = true;
 
@@ -79,6 +148,16 @@ export class CoreBridge extends EventEmitter {
       if (text) {
         console.error(`[core] ${text}`);
       }
+    });
+
+    this.child.on("error", (error) => {
+      this.started = false;
+      this.child = null;
+      for (const [, item] of this.pending) {
+        item.reject(error);
+      }
+      this.pending.clear();
+      this.emit("exit", error);
     });
 
     this.child.on("exit", (code, signal) => {

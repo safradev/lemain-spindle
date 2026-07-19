@@ -1,4 +1,5 @@
 .venv/
+.venv-packaging/
 venv/
 env/
 .env
@@ -36,6 +37,11 @@ out/
 release/
 dist-electron/
 *.asar
+presentation/build-resources/**
+!presentation/build-resources/.gitkeep
+presentation/release/
+packaging/windows/dist/
+packaging/windows/build/
 
 .DS_Store
 Thumbs.db

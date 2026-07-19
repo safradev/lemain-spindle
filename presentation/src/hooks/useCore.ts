@@ -49,8 +49,8 @@ export function useCore() {
             return;
           }
           attempts += 1;
-          if (attempts < 8) {
-            window.setTimeout(connect, 400 * attempts);
+          if (attempts < 12) {
+            window.setTimeout(connect, 500 * attempts);
             return;
           }
           setState((current) => ({

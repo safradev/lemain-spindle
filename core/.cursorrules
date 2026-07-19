@@ -12,8 +12,10 @@ Motor Python do Spindle: validação, metadados e download via yt-dlp.
 ## Entry
 - Bridge: `python -m core.bridge.stdio_server`
 - CLI: `python download_youtube.py` (raiz) ou `python -m core.cli.download_youtube`
+- Freeze Windows: `packaging/spindle_core_main.py` → `spindle-core.exe`
 
 ## Conventions
 - Use cases orquestram validators + gateway
 - Somente hosts YouTube; `noplaylist`
 - Sem UI; sem Pillow/thumbnail no hot path do bridge
+- `SPINDLE_FFMPEG` / `FFMPEG_LOCATION` apontam ffmpeg embutido no app empacotado

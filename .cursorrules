@@ -13,10 +13,12 @@ Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Spac
 - UI: `cd presentation && npm run dev`
 - CLI: `python download_youtube.py`
 - Bridge: `python -m core.bridge.stdio_server`
+- Windows .exe: `packaging/windows/build.ps1` → `presentation/release/`
 
 ## Layout
 - `core/` — domain, application, infrastructure, bridge, cli
 - `presentation/` — Electron main/preload + React renderer
+- `packaging/` — freeze do core + electron-builder (Windows standalone)
 - `run-scripts/` — um script por SO (macos / linux / windows)
 
 ## Conventions
@@ -25,3 +27,4 @@ Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Spac
 - Thumbnails só por URL no IPC (sem bytes)
 - Um processo Python por app; um BrowserWindow
 - Ambiente: `.venv` + `requirements.txt`; depende de `ffmpeg`
+- App empacotado: Electron spawna `spindle-core` embutido + ffmpeg em `resources/`
