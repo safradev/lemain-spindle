@@ -36,10 +36,16 @@ try {
   Write-Host "==> Freeze core (PyInstaller)"
   if (Test-Path $DistDir) { Remove-Item -Recurse -Force $DistDir }
   if (Test-Path $BuildDir) { Remove-Item -Recurse -Force $BuildDir }
-  & $PyInstaller --clean --noconfirm $Spec
+  New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+  New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
+  & $PyInstaller --clean --noconfirm --distpath $DistDir --workpath $BuildDir $Spec
   $BuiltDir = Join-Path $DistDir "spindle-core"
   $BuiltExe = Join-Path $BuiltDir "spindle-core.exe"
   if (-not (Test-Path $BuiltExe)) {
+    Write-Host "Expected: $BuiltExe"
+    if (Test-Path $DistDir) {
+      Get-ChildItem -Recurse $DistDir | ForEach-Object { Write-Host " found: $($_.FullName)" }
+    }
     throw "PyInstaller did not produce spindle-core.exe"
   }
   if (Test-Path $CoreOutDir) { Remove-Item -Recurse -Force $CoreOutDir }
