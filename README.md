@@ -1,65 +1,136 @@
 # Lemain Spindle
 
-> **WIP — under construction**
-
-Desktop app da [Lemain Labs](https://lemain-labs.com) para extrair mídia do YouTube (MP4 / MP3) com interface moderna e motor Python interno.
-
-## Visão
-
-O Spindle será reescrito como aplicação **Electron** na superfície, com um **motor Python** embutido para validar URLs, consultar metadados e executar downloads. A UI não fala com o extrator direto — o shell orquestra; o núcleo Python executa.
+Desktop app da [Lemain Labs](https://lemain-labs.com) para extrair mídia do YouTube (MP4 / MP3).
 
 ```
 ┌─────────────────────────────┐
-│  Electron (UI / shell)      │
+│  presentation (Electron)    │
 │  preview · formatos · path  │
 └──────────────┬──────────────┘
-               │ IPC / bridge
+               │ NDJSON stdio
 ┌──────────────▼──────────────┐
-│  Python engine              │
+│  core (Python)              │
 │  validate · info · download │
 └─────────────────────────────┘
 ```
 
-## O que o produto pretende entregar
+## Módulos
 
-- Extrair um único vídeo do YouTube (`noplaylist`)
-- Exportar em **MP4** (vídeo) ou **MP3** (áudio)
-- Preview com título, canal, duração e thumbnail antes do download
-- Escolha de pasta de destino e acompanhamento de progresso
-- Hosts YouTube apenas — sem scrapers genéricos
-
-## Estado atual
-
-Protótipo local em Python (CustomTkinter + yt-dlp), em Clean Architecture. A migração para Electron + motor Python ainda não começou.
-
-| Camada | Papel |
+| Pasta | Papel |
 | --- | --- |
-| `src/domain` | entities, errors, ports |
-| `src/application` | GetVideoInfo, DownloadMedia |
-| `src/infrastructure` | yt-dlp gateway, validators |
-| `src/presentation` | UI atual (protótipo) |
+| [`core/`](core/) | Motor Python (domain, application, infrastructure, bridge, cli) |
+| [`presentation/`](presentation/) | UI Electron + React + Tailwind + anime.js |
+| [`run-scripts/`](run-scripts/) | Um script por SO (deps + UI + CLI) |
 
-## Roadmap (rascunho)
+## Fluxo
 
-- [ ] Definir contrato IPC Electron ↔ Python
-- [ ] Empacotar o motor Python como runtime interno
-- [ ] Reconstruir a UI em Electron no visual Lemain Studio
-- [ ] CLI e desktop compartilhando o mesmo motor
-- [ ] Distribuição macOS / Windows
+1. Colar link do YouTube → **Validar**
+2. Prévia (título, canal, duração, thumbnail)
+3. Escolher MP4/MP3 + pasta de destino
+4. **Extrair** com progresso
 
-## Requisitos (protótipo atual)
+Extração só após validação bem-sucedida. Somente hosts YouTube; download unitário (`noplaylist`).
 
-- Python 3.11+
-- `ffmpeg` no PATH
-- dependências em `requirements.txt`
+## Pré-requisitos
+
+No PATH:
+
+- Python 3.11+ (`python3` no macOS/Linux, `python` no Windows)
+- Node.js 20+ e npm
+- `ffmpeg` (obrigatório para extrair mídia)
+
+## Rodar com scripts (recomendado)
+
+Há **um script por sistema operacional**. Cada um:
+
+1. verifica dependências do sistema
+2. cria `.venv` / instala Python + npm se necessário
+3. sobe a **UI** ou a **CLI**
+
+### macOS
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
+chmod +x run-scripts/macos/spindle.sh
+./run-scripts/macos/spindle.sh
 ```
 
----
+```bash
+./run-scripts/macos/spindle.sh ui
+./run-scripts/macos/spindle.sh cli "https://www.youtube.com/watch?v=..." -f mp4 -o ~/Downloads
+./run-scripts/macos/spindle.sh setup
+```
 
-Produto da Lemain Labs · [github.com/safradev/lemain-spindle](https://github.com/safradev/lemain-spindle)
+### Linux
+
+```bash
+chmod +x run-scripts/linux/spindle.sh
+./run-scripts/linux/spindle.sh
+```
+
+```bash
+./run-scripts/linux/spindle.sh ui
+./run-scripts/linux/spindle.sh cli "https://www.youtube.com/watch?v=..." -f mp4 -o ~/Downloads
+./run-scripts/linux/spindle.sh setup
+```
+
+### Windows
+
+```bat
+run-scripts\windows\spindle.cmd
+```
+
+```bat
+run-scripts\windows\spindle.cmd ui
+run-scripts\windows\spindle.cmd cli "https://www.youtube.com/watch?v=..." -f mp4 -o "%USERPROFILE%\Downloads"
+run-scripts\windows\spindle.cmd setup
+```
+
+PowerShell:
+
+```powershell
+.\run-scripts\windows\spindle.ps1 ui
+.\run-scripts\windows\spindle.ps1 cli "https://www.youtube.com/watch?v=..." -f mp3
+```
+
+Sem argumentos (ou `ui`), o script sobe a interface Electron. `cli` roda o download em terminal. `setup` só instala/verifica deps.
+
+## Setup manual
+
+### Core (Python)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+CLI:
+
+```bash
+python download_youtube.py "https://www.youtube.com/watch?v=..." -f mp4 -o ~/Downloads
+```
+
+Bridge (smoke):
+
+```bash
+printf '%s\n' '{"id":"1","method":"ping","params":{}}' | python -m core.bridge.stdio_server
+```
+
+### Presentation (Electron)
+
+```bash
+cd presentation
+npm install
+npm run dev
+```
+
+## Contrato bridge (NDJSON)
+
+- `ping` → `{ ok: true }`
+- `getVideoInfo` `{ url }` → metadados do vídeo
+- `download` `{ requestId, url, format, outputDir }` → path do arquivo
+- evento `progress` `{ requestId, percent, status }`
+
+## Tema
+
+Claro/escuro no toggle da UI (persistido em `localStorage`).

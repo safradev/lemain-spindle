@@ -1,0 +1,19 @@
+# core
+
+Motor Python do Spindle: validação, metadados e download via yt-dlp.
+
+## Layers
+- `domain` — entities, errors, ports
+- `application` — GetVideoInfo, DownloadMedia
+- `infrastructure` — YtDlpVideoGateway, URL/path validators
+- `bridge` — NDJSON stdio para o Electron
+- `cli` — download_youtube
+
+## Entry
+- Bridge: `python -m core.bridge.stdio_server`
+- CLI: `python download_youtube.py` (raiz) ou `python -m core.cli.download_youtube`
+
+## Conventions
+- Use cases orquestram validators + gateway
+- Somente hosts YouTube; `noplaylist`
+- Sem UI; sem Pillow/thumbnail no hot path do bridge

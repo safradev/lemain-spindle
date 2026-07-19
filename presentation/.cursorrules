@@ -1,0 +1,25 @@
+# presentation
+
+Shell Electron do Spindle (UI).
+
+## Stack
+- Electron main + preload (contextIsolation, sandbox)
+- React + Vite + TypeScript
+- Tailwind CSS + anime.js
+- Bridge NDJSON com `core` via processo Python único
+
+## Entry
+- Dev: `npm run dev` (neste diretório)
+- Main: `electron/main.ts`
+- Preload: `electron/preload.ts`
+- Renderer: `src/App.tsx`
+
+## Brand
+- Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Space Grotesk + Inter
+- Ícones: `public/brand/` + `resources/icon.{icns,ico,png}`
+- Em dev, `npm run patch:electron` aplica nome/ícone no Electron.app (Dock)
+
+## Conventions
+- UI não fala com yt-dlp; só `window.spindle`
+- Thumbnails só por URL
+- Um BrowserWindow; sem nodeIntegration

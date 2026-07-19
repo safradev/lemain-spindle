@@ -3,19 +3,25 @@
 Desktop app da Lemain Labs para extrair mídia do YouTube (MP4/MP3).
 
 ## Destino
-Electron (UI) + motor Python interno (validação, info, download).
+Electron (`presentation/`) + motor Python (`core/`) via NDJSON stdio.
 
-## Entry points (protótipo atual)
-- GUI: `main.py` → `src/presentation/app.py`
-- CLI: `download_youtube.py`
+## Brand
+Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Space Grotesk + Inter; ícone em `presentation/public/brand/`.
 
-## Layers
-- `src/domain` — entities, errors, ports
-- `src/application` — GetVideoInfo, DownloadMedia
-- `src/infrastructure` — yt-dlp gateway, URL/path validators, thumbnail loader
-- `src/presentation` — CustomTkinter UI, workers; extração só após validar o vídeo
+## Entry points
+- Scripts: `run-scripts/{macos,linux,windows}/spindle.*` (deps + UI + CLI)
+- UI: `cd presentation && npm run dev`
+- CLI: `python download_youtube.py`
+- Bridge: `python -m core.bridge.stdio_server`
+
+## Layout
+- `core/` — domain, application, infrastructure, bridge, cli
+- `presentation/` — Electron main/preload + React renderer
+- `run-scripts/` — um script por SO (macos / linux / windows)
 
 ## Conventions
-- Use cases orquestram validators + gateway; UI/CLI não falam com yt-dlp direto
+- Use cases orquestram validators + gateway; UI não fala com yt-dlp
 - Somente hosts YouTube; download unitário (`noplaylist`)
+- Thumbnails só por URL no IPC (sem bytes)
+- Um processo Python por app; um BrowserWindow
 - Ambiente: `.venv` + `requirements.txt`; depende de `ffmpeg`

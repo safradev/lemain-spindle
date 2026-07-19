@@ -1,0 +1,11 @@
+# run-scripts
+
+Um script por sistema operacional. Cada um verifica deps, instala se necessário e sobe UI ou CLI.
+
+| Pasta | Script |
+| --- | --- |
+| `macos/spindle.sh` | macOS |
+| `linux/spindle.sh` | Linux |
+| `windows/spindle.cmd` | Windows (wrapper → `spindle.ps1`) |
+
+Comandos: sem args / `ui` · `cli <url>` · `setup` · `help`

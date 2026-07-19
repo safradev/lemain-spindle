@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="g" x1="22" y1="16" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8B1F"/>
+      <stop offset="0.5" stop-color="#FF6E00"/>
+      <stop offset="1" stop-color="#E85A00"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#070403"/>
+  <ellipse
+    cx="64"
+    cy="64"
+    rx="48"
+    ry="17"
+    stroke="url(#g)"
+    stroke-width="2.2"
+    opacity="0.35"
+    transform="rotate(-22 64 64)"
+  />
+  <ellipse
+    cx="64"
+    cy="64"
+    rx="48"
+    ry="17"
+    stroke="url(#g)"
+    stroke-width="2.2"
+    opacity="0.22"
+    transform="rotate(28 64 64)"
+  />
+  <g transform="translate(64 64) scale(0.295) translate(-128.395 -107.265)">
+    <path
+      fill="url(#g)"
+      d="M234.7,136.89l20.51-21.67c1.55-1.64,2.01-4.03,1.18-6.13L214.51,3.66c-.88-2.21-3.02-3.66-5.4-3.66H65.05c-1.6,0-3.12.66-4.22,1.82L7.63,58.05c-3.5,3.7-.88,9.8,4.22,9.8h6.04c5.1,0,7.72,6.09,4.22,9.8L1.59,99.31c-1.55,1.64-2.01,4.03-1.18,6.13l41.87,105.42c.88,2.21,3.02,3.66,5.4,3.66h144.07c1.6,0,3.12-.66,4.22-1.82l53.2-56.23c3.5-3.7.88-9.8-4.22-9.8h-6.04c-5.1,0-7.72-6.09-4.22-9.8ZM42.18,67.84h58.27c1.6,0,3.12-.66,4.22-1.82l53.72-56.77c3.35-3.54,9.24-2.41,11.04,2.12l50.58,127.35c1.51,3.81-1.29,7.95-5.4,7.95h-58.27c-1.6,0-3.12.66-4.22,1.82l-53.72,56.77c-3.35,3.54-9.24,2.41-11.04-2.12l-50.58-127.35c-1.51-3.81,1.29-7.95,5.4-7.95Z"
+    />
+  </g>
+  <circle cx="64" cy="18" r="3" fill="#FFD5B4"/>
+  <circle cx="64" cy="110" r="3" fill="#FF6E00" opacity="0.9"/>
+  <path d="M64 22v14M64 92v14" stroke="#FF6E00" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+</svg>
