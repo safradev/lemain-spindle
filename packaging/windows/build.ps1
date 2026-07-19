@@ -103,6 +103,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
       throw "npm run dist:win failed (exit $LASTEXITCODE)"
     }
+  }
   finally {
     Pop-Location
   }
