@@ -1,0 +1,21 @@
+# packaging/macos
+
+Validação local no Mac do freeze usado no Windows CI.
+
+## Abordagem
+1. **native** (padrão) — roda o mesmo `spindle-core.spec` no Mac com PyInstaller.
+   Pega erros de `SPECPATH`/entry/`core` antes do Actions.
+2. **wine** — Docker + `batonogov/pyinstaller-windows` (Wine) gera `.exe` de verdade.
+   Requer Docker/Colima; em Apple Silicon use `--platform linux/amd64` (já no script).
+   Em ARM, Wine às vezes falha no `wineboot`; nesse caso use `native`.
+
+## Uso
+```bash
+./packaging/macos/validate-windows-core.sh          # native
+./packaging/macos/validate-windows-core.sh wine     # Docker+Wine
+./packaging/macos/validate-windows-core.sh all
+```
+
+## Pré-requisitos
+- native: Python venv do repo + `packaging/requirements-build.txt`
+- wine: Docker Desktop ou Colima (`colima start`)

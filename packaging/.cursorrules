@@ -4,10 +4,12 @@ Empacota Spindle para distribuição standalone (sem Python/Node no host).
 
 ## Windows
 - Core: PyInstaller onedir → `spindle-core.exe` + `runtime/` (`windows/spindle-core.spec`)
-- Spec usa `pathex` absoluto do repo + `collect_submodules("core")`
+- `SPECPATH` no PyInstaller = diretório do `.spec` (não usar dirname nele)
+- Spec: `pathex` absoluto do repo + `collect_submodules("core")`
 - UI: electron-builder NSIS (`*-setup.exe`) — sem portable
 - Assinatura: `sign-binaries.ps1` + SignPath no CI (ver `SIGNPATH.md`)
 - Script: `windows/build.ps1` (smoke test exige exit 0 + `ok:true`)
+- Validação Mac: `macos/validate-windows-core.sh` (native e/ou Docker+Wine)
 - Artefatos: `presentation/release/`
 
 ## Runtime

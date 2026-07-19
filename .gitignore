@@ -42,6 +42,10 @@ presentation/build-resources/**
 presentation/release/
 packaging/windows/dist/
 packaging/windows/build/
+packaging/windows/dist-docker/
+packaging/windows/build-docker/
+packaging/windows/dist-mac-validate/
+packaging/windows/build-mac-validate/
 
 .DS_Store
 Thumbs.db

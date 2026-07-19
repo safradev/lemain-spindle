@@ -15,7 +15,7 @@ $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
 $SignScript = Join-Path $PSScriptRoot "sign-binaries.ps1"
 
-Write-Host "==> Spindle Windows build (v0.1.5)"
+Write-Host "==> Spindle Windows build (v0.1.6)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {

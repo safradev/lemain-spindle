@@ -14,6 +14,7 @@ Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Spac
 - CLI: `python download_youtube.py`
 - Bridge: `python -m core.bridge.stdio_server`
 - Windows .exe: `packaging/windows/build.ps1` → NSIS setup; confiança via SignPath ([`SIGNPATH.md`](SIGNPATH.md))
+- Validação Mac do freeze Windows: `packaging/macos/validate-windows-core.sh` (Docker + Wine)
 
 ## Layout
 - `core/` — domain, application, infrastructure, bridge, cli

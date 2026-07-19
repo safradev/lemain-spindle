@@ -105,7 +105,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lemain-spindle-windows-0.1.5
+          name: lemain-spindle-windows-0.1.6
           path: |
             presentation/release/Lemain-Spindle-*-setup.exe
             presentation/release/*.yml
@@ -128,7 +128,7 @@ jobs:
       - name: Download release assets
         uses: actions/download-artifact@v4
         with:
-          name: lemain-spindle-windows-0.1.5
+          name: lemain-spindle-windows-0.1.6
           path: artifacts
 
       - name: Generate CHECKSUMS.sha256

@@ -1,11 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import sys
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-spec_dir = os.path.dirname(SPECPATH)
+spec_dir = os.path.abspath(SPECPATH)
 repo_root = os.path.abspath(os.path.join(spec_dir, "..", ".."))
-entry_script = os.path.join(spec_dir, "..", "spindle_core_main.py")
+entry_script = os.path.abspath(os.path.join(spec_dir, "..", "spindle_core_main.py"))
+
+if not os.path.isdir(repo_root):
+    raise SystemExit(f"Repo root not found: {repo_root}")
+if not os.path.isfile(entry_script):
+    raise SystemExit(f"Entry script not found: {entry_script}")
+
+sys.path.insert(0, repo_root)
 
 datas = []
 binaries = []
