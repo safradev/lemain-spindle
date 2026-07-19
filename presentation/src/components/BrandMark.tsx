@@ -4,9 +4,10 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ size = 36, className }: BrandMarkProps) {
+  const src = `${import.meta.env.BASE_URL}brand/spindle-icon.svg`;
   return (
     <img
-      src="/brand/spindle-icon.svg"
+      src={src}
       alt=""
       width={size}
       height={size}

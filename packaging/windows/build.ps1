@@ -11,7 +11,7 @@ $Spec = Join-Path $PSScriptRoot "spindle-core.spec"
 $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
 
-Write-Host "==> Spindle Windows build (v0.1.0)"
+Write-Host "==> Spindle Windows build (v0.1.1)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {
@@ -47,6 +47,10 @@ try {
       Get-ChildItem -Recurse $DistDir | ForEach-Object { Write-Host " found: $($_.FullName)" }
     }
     throw "PyInstaller did not produce spindle-core.exe"
+  }
+  $RuntimeDir = Join-Path $BuiltDir "runtime"
+  if (-not (Test-Path $RuntimeDir)) {
+    throw "PyInstaller did not produce runtime/ next to spindle-core.exe"
   }
   if (Test-Path $CoreOutDir) { Remove-Item -Recurse -Force $CoreOutDir }
   New-Item -ItemType Directory -Force -Path $CoreOutDir | Out-Null

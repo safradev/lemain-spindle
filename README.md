@@ -149,8 +149,8 @@ Artefatos em `presentation/release/`:
 
 | Arquivo | Uso |
 | --- | --- |
-| `Lemain-Spindle-0.1.0-portable.exe` | Baixar e executar (recomendado) |
-| `Lemain-Spindle-0.1.0-setup.exe` | Instalador NSIS |
+| `Lemain-Spindle-*-portable.exe` | Baixar e executar (recomendado) |
+| `Lemain-Spindle-*-setup.exe` | Instalador NSIS |
 
 O pacote inclui UI Electron + `spindle-core.exe` (motor Python congelado) + `ffmpeg`.
 

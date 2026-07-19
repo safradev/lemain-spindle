@@ -5,6 +5,7 @@ const USER_MESSAGES = {
   network: "A conexão falhou. Verifique a internet e tente novamente.",
   permission: "Sem permissão para salvar nesta pasta. Escolha outro destino.",
   invalidParams: "Não foi possível iniciar. Confira o link, o formato e a pasta.",
+  motor: "O motor do Spindle não iniciou. Feche o antivírus temporariamente ou reinstale o app.",
   generic: "Algo deu errado. Tente novamente.",
 } as const;
 
@@ -32,6 +33,10 @@ const RULES: Array<{ test: RegExp; message: string }> = [
   {
     test: /par[aâ]metros|formato de m[ií]dia inv[aá]lido|pasta de destino/i,
     message: USER_MESSAGES.invalidParams,
+  },
+  {
+    test: /motor|embutido|python encerrou|enoent|spawn|indispon[ií]vel/i,
+    message: USER_MESSAGES.motor,
   },
 ];
 

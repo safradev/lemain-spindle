@@ -34,17 +34,19 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    contents_directory="runtime",
 )
 coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
     name="spindle-core",
+    upx=False,
 )

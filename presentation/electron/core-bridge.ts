@@ -49,8 +49,12 @@ function resolvePythonBinary(root: string): string {
   return process.platform === "win32" ? "python" : "python3";
 }
 
+function coreFileName(): string {
+  return process.platform === "win32" ? "spindle-core.exe" : "spindle-core";
+}
+
 function resolveBundledCorePath(): string | null {
-  const fileName = process.platform === "win32" ? "spindle-core.exe" : "spindle-core";
+  const fileName = coreFileName();
   const candidates = [
     path.join(process.resourcesPath, "core", fileName),
     path.join(repoRootFromMain(), "presentation", "build-resources", "core", fileName),
@@ -78,8 +82,7 @@ function resolveBundledFfmpegPath(): string | null {
 }
 
 function packagedCorePath(): string {
-  const fileName = process.platform === "win32" ? "spindle-core.exe" : "spindle-core";
-  return path.join(process.resourcesPath, "core", fileName);
+  return path.join(process.resourcesPath, "core", coreFileName());
 }
 
 function shouldUseBundledCore(): boolean {
@@ -100,6 +103,7 @@ function resolveCoreLaunch(root: string): CoreLaunch {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     PYTHONUNBUFFERED: "1",
+    PYTHONIOENCODING: "utf-8",
   };
 
   if (ffmpeg) {
@@ -111,6 +115,7 @@ function resolveCoreLaunch(root: string): CoreLaunch {
     if (!bundledCore) {
       throw new Error("Motor embutido não encontrado. Reinstale o aplicativo.");
     }
+    console.log(`[core] launching bundled motor: ${bundledCore}`);
     return {
       command: bundledCore,
       args: [],
@@ -119,8 +124,10 @@ function resolveCoreLaunch(root: string): CoreLaunch {
     };
   }
 
+  const python = resolvePythonBinary(root);
+  console.log(`[core] launching python motor: ${python}`);
   return {
-    command: resolvePythonBinary(root),
+    command: python,
     args: ["-m", "core.bridge.stdio_server"],
     cwd: root,
     env: {
@@ -153,6 +160,7 @@ export class CoreBridge extends EventEmitter {
       stdio: ["pipe", "pipe", "pipe"],
       env: launch.env,
       windowsHide: true,
+      shell: false,
     });
     this.started = true;
 
@@ -167,6 +175,7 @@ export class CoreBridge extends EventEmitter {
     });
 
     this.child.on("error", (error) => {
+      console.error("[core] failed to spawn", error);
       this.started = false;
       this.child = null;
       for (const [, item] of this.pending) {
@@ -182,6 +191,7 @@ export class CoreBridge extends EventEmitter {
       const error = new Error(
         `Motor Python encerrou (code=${code ?? "null"}, signal=${signal ?? "null"}).`,
       );
+      console.error("[core]", error.message);
       for (const [, item] of this.pending) {
         item.reject(error);
       }
@@ -225,7 +235,13 @@ export class CoreBridge extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
       try {
-        this.child!.stdin.write(`${payload}\n`);
+        const child = this.child;
+        if (!child || !child.stdin.writable) {
+          this.pending.delete(id);
+          reject(new Error("Motor indisponível. Reinicie o aplicativo."));
+          return;
+        }
+        child.stdin.write(`${payload}\n`);
       } catch (error) {
         this.pending.delete(id);
         reject(error instanceof Error ? error : new Error("Falha ao falar com o motor."));
