@@ -1,10 +1,10 @@
 {
   "name": "lemain-spindle",
   "productName": "Lemain Spindle",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Lemain Spindle — YouTube media extractor",
-  "author": "Leandro Safra",
+  "author": "Lemain Labs",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -65,13 +65,12 @@
     ],
     "win": {
       "icon": "resources/icon.ico",
+      "publisherName": "Lemain Labs",
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
+      "rfc3161TimeStampServer": "http://timestamp.digicert.com",
       "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        },
         {
           "target": "nsis",
           "arch": [
@@ -79,10 +78,7 @@
           ]
         }
       ],
-      "artifactName": "Lemain-Spindle-${version}-${os}-${arch}.${ext}"
-    },
-    "portable": {
-      "artifactName": "Lemain-Spindle-${version}-portable.exe"
+      "artifactName": "Lemain-Spindle-${version}-setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -90,7 +86,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Lemain Spindle",
-      "artifactName": "Lemain-Spindle-${version}-setup.${ext}"
+      "artifactName": "Lemain-Spindle-${version}-setup.${ext}",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "asar": true
   }

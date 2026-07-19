@@ -3,15 +3,19 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $Presentation = Join-Path $RepoRoot "presentation"
 $CoreOutDir = Join-Path $Presentation "build-resources\core"
+$FfmpegDir = Join-Path $Presentation "build-resources\ffmpeg"
 $CoreExe = Join-Path $CoreOutDir "spindle-core.exe"
+$FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
+$FfprobeExe = Join-Path $FfmpegDir "ffprobe.exe"
 $VenvDir = Join-Path $RepoRoot ".venv-packaging"
 $Python = Join-Path $VenvDir "Scripts\python.exe"
 $PyInstaller = Join-Path $VenvDir "Scripts\pyinstaller.exe"
 $Spec = Join-Path $PSScriptRoot "spindle-core.spec"
 $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
+$SignScript = Join-Path $PSScriptRoot "sign-binaries.ps1"
 
-Write-Host "==> Spindle Windows build (v0.1.1)"
+Write-Host "==> Spindle Windows build (v0.1.2)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {
@@ -67,7 +71,23 @@ try {
   Write-Host "==> Download ffmpeg"
   & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "download-ffmpeg.ps1")
 
-  Write-Host "==> Build Electron UI"
+  Write-Host "==> Authenticode (nested binaries)"
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $SignScript -Paths @(
+    $CoreExe,
+    $FfmpegExe,
+    $FfprobeExe
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE) -and [string]::IsNullOrWhiteSpace($env:CSC_LINK)) {
+    $CscPfx = Join-Path $env:TEMP ("spindle-csc-" + [guid]::NewGuid().ToString("N") + ".pfx")
+    $bytes = [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE.Trim())
+    [IO.File]::WriteAllBytes($CscPfx, $bytes)
+    $env:CSC_LINK = $CscPfx
+    $env:CSC_KEY_PASSWORD = $env:WINDOWS_CERTIFICATE_PASSWORD
+    $env:CSC_TIMESTAMP_URL = if ($env:WINDOWS_TIMESTAMP_URL) { $env:WINDOWS_TIMESTAMP_URL } else { "http://timestamp.digicert.com" }
+  }
+
+  Write-Host "==> Build Electron UI (NSIS)"
   Push-Location $Presentation
   try {
     if (-not (Test-Path (Join-Path $Presentation "node_modules"))) {

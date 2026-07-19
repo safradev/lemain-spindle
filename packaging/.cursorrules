@@ -4,13 +4,13 @@ Empacota Spindle para distribuição standalone (sem Python/Node no host).
 
 ## Windows
 - Core: PyInstaller onedir → `spindle-core.exe` + `runtime/` (`windows/spindle-core.spec`)
-- UI: electron-builder em `presentation/` (portable + NSIS)
-- Script: `windows/build.ps1` (ffmpeg + core + Electron)
-- Artefatos: `presentation/release/` (`Lemain-Spindle-*-portable.exe`)
+- UI: electron-builder NSIS (`*-setup.exe`) — sem portable
+- Assinatura: `sign-binaries.ps1` + SignPath no CI (ver `SIGNPATH.md`)
+- Script: `windows/build.ps1`
+- Artefatos: `presentation/release/`
 
 ## Runtime
-- Electron empacotado spawna `resources/core/spindle-core.exe` (`windowsHide`)
+- Electron spawna `resources/core/spindle-core.exe` (`windowsHide`)
 - `SPINDLE_FFMPEG` → `resources/ffmpeg/ffmpeg.exe`
-- Pasta do PyInstaller chama-se `runtime/` (não `_internal`) para não ser ignorada no pack
-- UPX desligado (evita falso positivo de antivírus)
-- Build Windows exige host/CI Windows (PyInstaller não cross-compila)
+- Pasta PyInstaller: `runtime/` (não `_internal`); UPX off
+- Confiança Windows = Authenticode (igual Orchestrator), não “desligar AV”

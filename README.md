@@ -135,9 +135,9 @@ npm run dev
 
 Claro/escuro no toggle da UI (persistido em `localStorage`).
 
-## Distribuição Windows (v0.1.0)
+## Distribuição Windows
 
-Gera um `.exe` standalone (sem Python/Node no PC de destino). O build **precisa rodar no Windows** (PyInstaller não cross-compila).
+Gera instalador NSIS standalone (sem Python/Node no PC de destino). O build **precisa rodar no Windows** (ou GitHub Actions).
 
 ### Em uma máquina Windows
 
@@ -145,22 +145,22 @@ Gera um `.exe` standalone (sem Python/Node no PC de destino). O build **precisa 
 powershell -NoProfile -ExecutionPolicy Bypass -File .\packaging\windows\build.ps1
 ```
 
-Artefatos em `presentation/release/`:
+Artefato em `presentation/release/`:
 
 | Arquivo | Uso |
 | --- | --- |
-| `Lemain-Spindle-*-portable.exe` | Baixar e executar (recomendado) |
-| `Lemain-Spindle-*-setup.exe` | Instalador NSIS |
+| `Lemain-Spindle-*-setup.exe` | Instalador NSIS (único canal suportado) |
 
-O pacote inclui UI Electron + `spindle-core.exe` (motor Python congelado) + `ffmpeg`.
+O pacote inclui UI Electron + `spindle-core.exe` + `ffmpeg`.
+
+**Assinatura Authenticode** (SignPath / PFX) é necessária para não ser bloqueado pelo SmartScreen — ver [`SIGNPATH.md`](SIGNPATH.md) e [`docs/TRUST_AND_SIGNING.md`](docs/TRUST_AND_SIGNING.md). Mesmo modelo do Orchestrator.
 
 ### Via GitHub Actions
 
 Workflow [`.github/workflows/build-windows.yml`](.github/workflows/build-windows.yml):
 
-1. Actions → **Build Windows** → Run workflow  
-   ou push de tag `v0.1.0`
-2. Baixar o artifact `lemain-spindle-windows-0.1.0`
+1. Actions → **Build Windows** → Run workflow, ou push de tag `v0.1.2`
+2. Baixar o artifact / assets da release (setup + `CHECKSUMS.sha256`)
 
 ### Pré-requisitos do build (só na máquina que gera o .exe)
 
@@ -168,3 +168,4 @@ Workflow [`.github/workflows/build-windows.yml`](.github/workflows/build-windows
 - Python 3.12+
 - Node.js 20+
 - npm
+- Opcional: certificado Windows / SignPath configurado no CI

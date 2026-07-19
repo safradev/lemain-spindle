@@ -13,7 +13,7 @@ Visual Lemain Labs (https://lemain-labs.com): dark-first, acento `#ff6e00`, Spac
 - UI: `cd presentation && npm run dev`
 - CLI: `python download_youtube.py`
 - Bridge: `python -m core.bridge.stdio_server`
-- Windows .exe: `packaging/windows/build.ps1` → `presentation/release/`
+- Windows .exe: `packaging/windows/build.ps1` → NSIS setup; confiança via SignPath ([`SIGNPATH.md`](SIGNPATH.md))
 
 ## Layout
 - `core/` — domain, application, infrastructure, bridge, cli

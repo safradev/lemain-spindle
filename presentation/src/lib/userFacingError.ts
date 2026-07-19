@@ -5,7 +5,7 @@ const USER_MESSAGES = {
   network: "A conexão falhou. Verifique a internet e tente novamente.",
   permission: "Sem permissão para salvar nesta pasta. Escolha outro destino.",
   invalidParams: "Não foi possível iniciar. Confira o link, o formato e a pasta.",
-  motor: "O motor do Spindle não iniciou. Feche o antivírus temporariamente ou reinstale o app.",
+  motor: "O motor do Spindle não iniciou. Reinstale pelo setup oficial da release.",
   generic: "Algo deu errado. Tente novamente.",
 } as const;
 

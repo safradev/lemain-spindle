@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   windows:
@@ -28,16 +29,85 @@ jobs:
           cache: npm
           cache-dependency-path: presentation/package-lock.json
 
+      - name: Import Windows certificate
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
+            Write-Host "WINDOWS_CERTIFICATE não configurado — build sem PFX local."
+            exit 0
+          }
+          New-Item -ItemType Directory -Force -Path certificate | Out-Null
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item certificate/tempCert.txt
+          $secure = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $secure
+          $env:CSC_LINK = (Resolve-Path certificate/certificate.pfx).Path
+          $env:CSC_KEY_PASSWORD = $env:WINDOWS_CERTIFICATE_PASSWORD
+          echo "CSC_LINK=$($env:CSC_LINK)" >> $env:GITHUB_ENV
+          echo "CSC_KEY_PASSWORD=$($env:CSC_KEY_PASSWORD)" >> $env:GITHUB_ENV
+          echo "WINDOWS_CERTIFICATE=$($env:WINDOWS_CERTIFICATE)" >> $env:GITHUB_ENV
+          echo "WINDOWS_CERTIFICATE_PASSWORD=$($env:WINDOWS_CERTIFICATE_PASSWORD)" >> $env:GITHUB_ENV
+
       - name: Build Windows package
         shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          WINDOWS_TIMESTAMP_URL: ${{ vars.WINDOWS_TIMESTAMP_URL }}
         run: .\packaging\windows\build.ps1
+
+      - name: Upload unsigned installers for SignPath
+        id: upload-windows-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installers-unsigned
+          path: presentation/release/Lemain-Spindle-*-setup.exe
+          if-no-files-found: error
+
+      - name: Detect SignPath
+        id: signpath
+        shell: bash
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          if [ -n "$SIGNPATH_API_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sign Windows installers with SignPath
+        if: steps.signpath.outputs.enabled == 'true'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-windows-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-windows
+
+      - name: Replace with SignPath signed installers
+        if: steps.signpath.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $release = "presentation/release"
+          Get-ChildItem -Path signed-windows -Recurse -Filter "*.exe" | ForEach-Object {
+            Copy-Item $_.FullName -Destination (Join-Path $release $_.Name) -Force
+            Write-Host "Signed: $($_.Name)"
+          }
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lemain-spindle-windows-0.1.1
+          name: lemain-spindle-windows-0.1.2
           path: |
-            presentation/release/*.exe
+            presentation/release/Lemain-Spindle-*-setup.exe
             presentation/release/*.yml
           if-no-files-found: error
 
@@ -46,5 +116,28 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            presentation/release/Lemain-Spindle-*-portable.exe
             presentation/release/Lemain-Spindle-*-setup.exe
+
+  checksums:
+    needs: windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: lemain-spindle-windows-0.1.2
+          path: artifacts
+
+      - name: Generate CHECKSUMS.sha256
+        run: |
+          cd artifacts
+          find . -type f \( -name '*.exe' -o -name '*.yml' \) -print0 | sort -z | xargs -0 sha256sum > CHECKSUMS.sha256
+          cat CHECKSUMS.sha256
+
+      - name: Publish checksums
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/CHECKSUMS.sha256
