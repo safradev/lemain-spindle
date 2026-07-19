@@ -13,7 +13,7 @@ let bridge: CoreBridge | null = null;
 
 app.setName(APP_NAME);
 
-if (!app.isPackaged) {
+if (process.env.VITE_DEV_SERVER_URL || !existsSync(path.join(process.resourcesPath, "core"))) {
   app.commandLine.appendSwitch("remote-debugging-port", "9223");
 }
 

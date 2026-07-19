@@ -3,7 +3,6 @@ import { createInterface } from "node:readline";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { EventEmitter } from "node:events";
-import { app } from "electron";
 import type {
   BridgeError,
   DownloadResult,
@@ -78,8 +77,25 @@ function resolveBundledFfmpegPath(): string | null {
   return null;
 }
 
+function packagedCorePath(): string {
+  const fileName = process.platform === "win32" ? "spindle-core.exe" : "spindle-core";
+  return path.join(process.resourcesPath, "core", fileName);
+}
+
+function shouldUseBundledCore(): boolean {
+  if (process.env.SPINDLE_USE_BUNDLED_CORE === "1") {
+    return true;
+  }
+  if (process.env.SPINDLE_USE_BUNDLED_CORE === "0") {
+    return false;
+  }
+  if (process.env.VITE_DEV_SERVER_URL) {
+    return false;
+  }
+  return existsSync(packagedCorePath());
+}
+
 function resolveCoreLaunch(root: string): CoreLaunch {
-  const bundledCore = resolveBundledCorePath();
   const ffmpeg = resolveBundledFfmpegPath();
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -90,8 +106,8 @@ function resolveCoreLaunch(root: string): CoreLaunch {
     env.SPINDLE_FFMPEG = ffmpeg;
   }
 
-  const preferBundled = app.isPackaged || process.env.SPINDLE_USE_BUNDLED_CORE === "1";
-  if (preferBundled) {
+  if (shouldUseBundledCore()) {
+    const bundledCore = resolveBundledCorePath();
     if (!bundledCore) {
       throw new Error("Motor embutido não encontrado. Reinstale o aplicativo.");
     }
