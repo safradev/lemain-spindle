@@ -15,7 +15,7 @@ $DistDir = Join-Path $PSScriptRoot "dist"
 $BuildDir = Join-Path $PSScriptRoot "build"
 $SignScript = Join-Path $PSScriptRoot "sign-binaries.ps1"
 
-Write-Host "==> Spindle Windows build (v0.1.2)"
+Write-Host "==> Spindle Windows build (v0.1.3)"
 Write-Host "Repo: $RepoRoot"
 
 function Assert-Command([string]$Name) {
@@ -96,8 +96,13 @@ try {
       npm install
     }
     npm run build
+    if ($LASTEXITCODE -ne 0) {
+      throw "npm run build failed (exit $LASTEXITCODE)"
+    }
     npm run dist:win
-  }
+    if ($LASTEXITCODE -ne 0) {
+      throw "npm run dist:win failed (exit $LASTEXITCODE)"
+    }
   finally {
     Pop-Location
   }
